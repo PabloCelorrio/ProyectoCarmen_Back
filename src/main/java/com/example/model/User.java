@@ -1,14 +1,14 @@
 package com.example.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import org.springframework.context.annotation.Bean;
 
 import java.util.UUID;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 @Entity
 public class User {
