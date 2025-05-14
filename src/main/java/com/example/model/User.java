@@ -3,50 +3,56 @@ package com.example.model;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import org.springframework.context.annotation.Bean;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 import javax.persistence.*;
 
 @Entity
+@Table(name = "user")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
+    @Column(name = "userID", nullable = false)
     private String userID;
-    private String user;
-    private String email;
-    private String pass;
 
-    @ManyToOne
-    @JoinColumn(name = "profileID")
+    private String userName;
+    private String email;
+    private String password;
+
+    @OneToOne(cascade = CascadeType.ALL) // esto guarda el profile automáticamente
+    @JoinColumn(name = "profileID", referencedColumnName = "profileID")
     private Profile profile;
 
-
-    public User(){
-    }
-
-    public User(String user, String pass, String email){
+    public User(String userName, String password, String email, Profile profile){
         this.userID = UUID.randomUUID().toString();
-        this.user = user;
+        this.userName = userName;
         this.email = email;
-        this.pass = pass;
-    }
-    public String getUser() {
-        return user;
+        this.password = password;
+        this.profile = profile;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public String getUserName() {
+        return userName;
     }
 
-    public String getPass() {
-        return pass;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public void setPass(String pass) {
-        this.pass = pass;
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getUserId() {
@@ -56,4 +62,8 @@ public class User {
     public String getEmail() { return email; }
 
     public void setEmail(String email) { this.email = email; }
+
+    public Profile getProfile() { return profile; }
+
+    public void setProfile(Profile profile) { this.profile = profile; }
 }
