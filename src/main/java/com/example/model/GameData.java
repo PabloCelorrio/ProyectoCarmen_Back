@@ -19,4 +19,45 @@ public class GameData {
     private String occupation;
 
     // Getters and Setters
+
+
+    public String getGameDataID() {
+        return gameDataID;
+    }
+
+    public void setGameDataID(String gameDataID) {
+        this.gameDataID = gameDataID;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public ScoreInfo getScoreInfo() {
+        return scoreInfo;
+    }
+
+    public void setScoreInfo(ScoreInfo scoreInfo) {
+        this.scoreInfo = scoreInfo;
+    }
+
+    public boolean isGameCleared() {
+        return isGameCleared;
+    }
+
+    public void setGameCleared(boolean gameCleared) {
+        isGameCleared = gameCleared;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
 }

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 //@Slf4j
 @Api(tags = { "User" },  description = "User Controls")
@@ -53,60 +54,21 @@ public class UserController {
     @ResponseBody
     @CrossOrigin(origins = "http://localhost:3000")
     @ApiOperation(value = "Create request", notes="User create request, which returns a valid token for that user in response headers.")
-    @PostMapping(path="/create", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping(path="/user/create", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity createUser(HttpSession session, @RequestBody User userData) {
 
-        try {
+        if(!userService.getUserByEmail(userData.getEmail()).isPresent()) {
 
-            userService.createUser(userData.getUserName(), userData.getPassword(), userData.getEmail(), null);
+            try {
 
-            Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
-
-            Date now = new Date();
-            Date expirationDate = new Date(now.getTime() + EXPIRATION_TIME);
-
-            String userJson = new ObjectMapper().writeValueAsString(userData);
-
-            String token = JWT.create()
-                    .withIssuedAt(now)
-                    .withExpiresAt(expirationDate)
-                    .withClaim("user", userJson)
-                    .sign(algoritmo);
-
-            ResponseEntity response = ResponseEntity.ok().header("access-control-expose-headers", "Authorization")
-                    .header("Authorization", "Bearer " + token)
-                    .body("");
-
-            return response;
-        }
-        catch(Exception e) {
-
-            logger.error(String.format("Error while creating user %s: %s", userData.getUserName(), e.getMessage()));
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en la creación del usuario.");
-        }
-
-    }
-
-    @ResponseBody
-    @CrossOrigin(origins = "http://localhost:3000")
-    @ApiOperation(value = "Login request", notes="Login request, which returns a valid token in response headers.")
-    @PostMapping(path="/login", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    public ResponseEntity login(HttpSession session, @RequestBody User usuarioLogin) {
-
-        MDC.put("userId", usuarioLogin.getUserId().toString());
-        MDC.put("sessionID", session.getId());
-
-        try {
-
-            if (usuarioLogin.getUserName().equals(usuarioLogin.getUserName()) && usuarioLogin.getPassword().equals(usuarioLogin.getPassword())) {
+                userService.createUser(userData.getUserName(), userData.getPassword(), userData.getEmail(), null);
 
                 Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
 
                 Date now = new Date();
                 Date expirationDate = new Date(now.getTime() + EXPIRATION_TIME);
 
-                String userJson = new ObjectMapper().writeValueAsString(usuarioLogin);
+                String userJson = new ObjectMapper().writeValueAsString(userData);
 
                 String token = JWT.create()
                         .withIssuedAt(now)
@@ -115,22 +77,83 @@ public class UserController {
                         .sign(algoritmo);
 
                 ResponseEntity response = ResponseEntity.ok().header("access-control-expose-headers", "Authorization")
-                                                             .header("Authorization", "Bearer " + token)
-                                                             .body("");
-
-                logger.debug("/login executed successfully");
-                logger.info(String.format("User %s logged in correctly", usuarioLogin.getUserName()));
+                        .header("Authorization", "Bearer " + token)
+                        .body("");
 
                 return response;
+            } catch (Exception e) {
+
+                logger.error(String.format("Error while creating user %s: %s", userData.getUserName(), e.getMessage()));
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en la creación del usuario.");
+            }
+
+        }
+        else {
+
+            logger.error(String.format("Error while creating user %s: %s", userData.getUserName(), "User already exists."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error en la creación del usuario. El usuario ya existe.");
+        }
+    }
+
+    @ResponseBody
+    @CrossOrigin(origins = "http://localhost:3000")
+    @ApiOperation(value = "Login request", notes="Login request, which returns a valid token in response headers.")
+    @PostMapping(path="/login", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
+    public ResponseEntity login(HttpSession session, @RequestBody User userRequestData) {
+
+        MDC.put("userEmail", userRequestData.getEmail());
+        MDC.put("sessionID", session.getId());
+
+        try {
+
+            Optional<User> optionalUser = userService.getUserByEmail(userRequestData.getEmail());
+
+            if (optionalUser.isPresent()) {
+
+                User userLogin = optionalUser.get();
+
+                if (userRequestData.getPassword().equals(userLogin.getPassword())) {
+
+                    Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
+
+                    Date now = new Date();
+                    Date expirationDate = new Date(now.getTime() + EXPIRATION_TIME);
+
+                    String userJson = new ObjectMapper().writeValueAsString(userRequestData);
+
+                    String token = JWT.create()
+                            .withIssuedAt(now)
+                            .withExpiresAt(expirationDate)
+                            .withClaim("userRequestData", userJson)
+                            .sign(algoritmo);
+
+                    ResponseEntity response = ResponseEntity.ok().header("access-control-expose-headers", "Authorization")
+                            .header("Authorization", "Bearer " + token)
+                            .body("");
+
+                    logger.debug("/login executed successfully");
+                    logger.info(String.format("User %s logged in correctly", userRequestData.getUserName()));
+
+                    return response;
+
+                } else {
+
+                    logger.error(String.format("Incorrect credentials for userRequestData %s", userRequestData.getUserName()));
+
+
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
+
+                }
 
             } else {
 
-                logger.error(String.format("Incorrect credentials for user %s", usuarioLogin.getUserName()));
+                logger.error("There was a problem creating the token: User does not exist");
 
-
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Hubo un problema en el inicio de sesión. El usuario no existe");
 
             }
+
         }catch (JsonProcessingException exception){
 
             logger.error(String.format("There was a problem creating the token: %s", exception.getMessage()));
@@ -156,7 +179,7 @@ public class UserController {
 
         try {
 
-            Algorithm algoritmo = Algorithm.HMAC256("Prueba");
+            Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
 
             String[] tokenParts = token.split(" ");
 
@@ -168,9 +191,10 @@ public class UserController {
 
             MDC.put("userId", usuarioOldPass.getUserId().toString());
 
-            if(usuarioOldPass.getUserName().equals(usuarioNewPass.getUserName()) && usuarioOldPass.getPassword().equals(usuarioNewPass.getPassword()) && expirationDate.after(new Date())) {
+            if(usuarioOldPass.getEmail().equals(usuarioNewPass.getEmail()) && usuarioOldPass.getPassword().equals(usuarioNewPass.getPassword()) && expirationDate.after(new Date())) {
 
-                //userService.getUserByEmail
+                userService.saveUser(usuarioNewPass);
+
                 logger.debug("/pass-change executed successfully");
                 logger.info("User changed the password correctly");
                 return ResponseEntity.ok().body("Contraseña cambiada");

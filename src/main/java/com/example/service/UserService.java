@@ -22,12 +22,27 @@ public class UserService {
         return userRepository.findById(userId);
     }
 
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmailIgnoreCase(email);
+    }
+
     public User saveUser(User user) {
 
         Profile profile = new Profile();
         user.setProfile(profile);
 
         return userRepository.save(user);
+    }
+
+    public boolean deleteUser(User user) {
+
+        try {
+            userRepository.delete(user);
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean createUser(String userName, String pass, String email, Profile profile) {
@@ -42,4 +57,5 @@ public class UserService {
             return false;
         }
     }
+
 }
