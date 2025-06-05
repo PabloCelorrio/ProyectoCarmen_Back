@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface GameDataRepository extends JpaRepository<GameData, String> {
-    List<GameData> findByUser_UserId(String userId);
+    List<GameData> findByUser_UserID(String userId);
 }

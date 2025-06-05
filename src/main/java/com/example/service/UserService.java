@@ -45,6 +45,8 @@ public class UserService {
         }
     }
 
+    //TODO Crear profile en createUser en vez de en saveUser con las comprobaciones correspondientes.
+
     public boolean createUser(String userName, String pass, String email, Profile profile) {
 
         User user = new User(userName, pass, email, profile);

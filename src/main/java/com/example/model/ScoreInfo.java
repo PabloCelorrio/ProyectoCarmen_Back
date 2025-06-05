@@ -3,19 +3,20 @@ package com.example.model;
 import javax.persistence.*;
 
 @Entity
+@Table(name = "scoreinfo")
 public class ScoreInfo {
     @Id
     private String scoreInfoID;
-    private int wins;
-    private int loses;
-    private int bestScore;
+    private String playerRank;
+    private boolean gameWon;
+    private int score;
 
     // Getters and Setters
 
     public ScoreInfo() {
-        this.bestScore = 0;
-        this.loses = 0;
-        this.wins = 0;
+        this.score = 0;
+        this.gameWon = false;
+        this.playerRank = "Rookie";
     }
 
     public String getScoreInfoID() {
@@ -26,27 +27,27 @@ public class ScoreInfo {
         this.scoreInfoID = scoreInfoID;
     }
 
-    public int getWins() {
-        return wins;
+    public String getPlayerRank() {
+        return playerRank;
     }
 
-    public void setWins(int wins) {
-        this.wins = wins;
+    public void setPlayerRank(String playerRank) {
+        this.playerRank = playerRank;
     }
 
-    public int getLoses() {
-        return loses;
+    public boolean isGameWon() {
+        return gameWon;
     }
 
-    public void setLoses(int loses) {
-        this.loses = loses;
+    public void setGameWon(boolean gameWon) {
+        this.gameWon = gameWon;
     }
 
-    public int getBestScore() {
-        return bestScore;
+    public int getScore() {
+        return score;
     }
 
-    public void setBestScore(int bestScore) {
-        this.bestScore = bestScore;
+    public void setScore(int score) {
+        this.score = score;
     }
 }

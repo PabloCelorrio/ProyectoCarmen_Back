@@ -36,7 +36,7 @@ public class GameController {
 
             String userId = userOptional.get().getUserId();
 
-            games = gameDataRepository.findByUser_UserId(userId);
+            games = gameDataRepository.findByUser_UserID(userId);
             return ResponseEntity.ok(games);
 
         } else {
