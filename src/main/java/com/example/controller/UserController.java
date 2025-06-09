@@ -3,7 +3,9 @@ package com.example.controller;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.model.Profile;
 import com.example.model.User;
+import com.example.service.ProfileService;
 import com.example.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.util.Date;
@@ -30,6 +33,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ProfileService profileService;
 
     @GetMapping
     @ApiOperation(value = "Get all users")
@@ -48,7 +53,7 @@ public class UserController {
     private static final long EXPIRATION_TIME = 300000;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    /*@CrossOrigin(origins = "http://localhost:3000")
     @ApiOperation(value = "Create request")
     @PostMapping(path="/user/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createUser(HttpSession session, @RequestBody User userData) {
@@ -79,6 +84,69 @@ public class UserController {
         } else {
             logger.error("User already exists: " + userData.getUserName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("El usuario ya existe.");
+        }
+    }*/
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @ApiOperation(value = "Create request")
+    @PostMapping(
+            path = "/user/create",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<?> createUser(
+            HttpSession session,
+            @RequestParam("userName") String userName,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
+    ) {
+        if (!userService.getUserByEmail(email).isPresent()) {
+            try {
+                // Puedes guardar la imagen si lo deseas
+                byte[] imageBytes = null;
+                if (imageFile != null && !imageFile.isEmpty()) {
+                    imageBytes = imageFile.getBytes(); // o guárdalo en disco, etc.
+                }
+
+                Profile profile = new Profile();
+                profile.setProfileImg(imageBytes);
+
+                profileService.saveProfile(profile);
+
+                userService.createUser(userName, password, email, profile);
+
+                Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
+                Date now = new Date();
+                Date expirationDate = new Date(now.getTime() + EXPIRATION_TIME);
+
+                User userData = new User(userName, email, password, profile);
+                userData.setUserName(userName);
+                userData.setEmail(email);
+                userData.setPassword(password); // asegúrate de no devolver esto en la respuesta real
+
+                String userJson = new ObjectMapper().writeValueAsString(userData);
+
+                String token = JWT.create()
+                        .withIssuedAt(now)
+                        .withExpiresAt(expirationDate)
+                        .withClaim("user", userJson)
+                        .sign(algoritmo);
+
+                return ResponseEntity.ok()
+                        .header("access-control-expose-headers", "Authorization")
+                        .header("Authorization", "Bearer " + token)
+                        .body("");
+
+            } catch (Exception e) {
+                logger.error(String.format("Error while creating user %s: %s", userName, e.getMessage()));
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error en la creación del usuario.");
+            }
+        } else {
+            logger.error("User already exists: " + userName);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("El usuario ya existe.");
         }
     }
 

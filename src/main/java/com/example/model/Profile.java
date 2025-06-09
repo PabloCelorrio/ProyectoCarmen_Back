@@ -12,6 +12,9 @@ public class Profile {
     @Lob
     private byte[] profileImg;
 
+    @OneToOne(mappedBy = "profile")
+    private User user;
+
     public Profile() {
         this.profileID = UUID.randomUUID().toString();
         this.nameAlias = "";
@@ -42,5 +45,11 @@ public class Profile {
         this.profileImg = profileImg;
     }
 
-    // Getters and Setters
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

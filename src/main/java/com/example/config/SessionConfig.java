@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-//@Configuration
+@Configuration
 @EnableSpringHttpSession
 public class SessionConfig {
 

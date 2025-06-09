@@ -28,9 +28,6 @@ public class UserService {
 
     public User saveUser(User user) {
 
-        Profile profile = new Profile();
-        user.setProfile(profile);
-
         return userRepository.save(user);
     }
 

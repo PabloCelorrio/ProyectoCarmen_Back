@@ -35,6 +35,7 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     //TODO los metodos solo pueden ejecutarse si se pasa un token
+    //TODO la cookie no se regenera al tener una sesión caducada o inexistente
 
     @CrossOrigin(origins = "http://localhost:3000")
     @ApiOperation(value = "Login request")
@@ -49,6 +50,9 @@ public class AuthController {
                 User userLogin = optionalUser.get();
 
                 if (userRequestData.getPassword().equals(userLogin.getPassword())) {
+
+                    session.setAttribute("session", session.getId());
+
                     Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
 
                     Date now = new Date();
@@ -94,6 +98,9 @@ public class AuthController {
                     // Aquí podrías agregar lógica adicional para comprobar en tu sistema
                     // si esa sesión sigue activa, si es necesario
                     return ResponseEntity.ok("Sesión activa");
+                }
+                else {
+                    HttpSession session = request.getSession(true);
                 }
             }
         }
