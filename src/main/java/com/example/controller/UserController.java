@@ -3,6 +3,7 @@ package com.example.controller;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.model.JwtUser;
 import com.example.model.Profile;
 import com.example.model.User;
 import com.example.service.ProfileService;
@@ -41,6 +42,16 @@ public class UserController {
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
+
+    @CrossOrigin(
+            origins = {
+                    "https://carmen-sandiego.loca.lt",
+                    "http://localhost:3000"
+            },
+            allowCredentials = "true",
+            allowedHeaders = "*",
+            methods = {RequestMethod.GET}
+    )
 
     @GetMapping("/{id}")
     @ApiOperation(value = "Get user by ID")
@@ -87,7 +98,16 @@ public class UserController {
         }
     }*/
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(
+            origins = {
+                    "https://carmen-sandiego.loca.lt",
+                    "http://localhost:3000"
+            },
+            allowCredentials = "true",
+            allowedHeaders = "*",
+            methods = {RequestMethod.POST}
+    )
+
     @ApiOperation(value = "Create request")
     @PostMapping(
             path = "/user/create",
@@ -120,12 +140,8 @@ public class UserController {
                 Date now = new Date();
                 Date expirationDate = new Date(now.getTime() + EXPIRATION_TIME);
 
-                User userData = new User(userName, email, password, profile);
-                userData.setUserName(userName);
-                userData.setEmail(email);
-                userData.setPassword(password); // asegúrate de no devolver esto en la respuesta real
-
-                String userJson = new ObjectMapper().writeValueAsString(userData);
+                JwtUser jwtUser = new JwtUser(email, password);
+                String userJson = new ObjectMapper().writeValueAsString(jwtUser);
 
                 String token = JWT.create()
                         .withIssuedAt(now)
@@ -150,8 +166,17 @@ public class UserController {
         }
     }
 
+    @CrossOrigin(
+            origins = {
+                    "https://carmen-sandiego.loca.lt",
+                    "http://localhost:3000"
+            },
+            allowCredentials = "true",
+            allowedHeaders = "*",
+            methods = {RequestMethod.POST}
+    )
+
     @PostMapping(path= "/pass-change", consumes = { MediaType.APPLICATION_JSON_VALUE }, produces = { MediaType.APPLICATION_JSON_VALUE })
-    @CrossOrigin(origins = "http://localhost:3000")
     @ApiOperation(value = "Password change request", notes="Password change request, which returns a text sequence in response headers. Pass is the new password of the user")
     @ApiImplicitParams({ @ApiImplicitParam(name = "Authorization",
             value = "JWT Token",
@@ -172,9 +197,9 @@ public class UserController {
             Date expirationDate = decodedToken.getExpiresAt();
 
             String userClaim = decodedToken.getClaim("user").asString();
-            User usuarioOldPass = new ObjectMapper().readValue(userClaim, User.class);
+            JwtUser usuarioOldPass = new ObjectMapper().readValue(userClaim, JwtUser.class);
 
-            MDC.put("userId", usuarioOldPass.getUserId().toString());
+            MDC.put("userId", usuarioOldPass.getEmail());
 
             if(usuarioOldPass.getEmail().equals(usuarioNewPass.getEmail()) && usuarioOldPass.getPassword().equals(usuarioNewPass.getPassword()) && expirationDate.after(new Date())) {
 
@@ -188,7 +213,7 @@ public class UserController {
 
                 if(expirationDate.after(new Date())) {
 
-                    logger.error(String.format("Incorrect credentials for user %s", usuarioOldPass.getUserName()));
+                    logger.error(String.format("Incorrect credentials for user %s", usuarioOldPass.getEmail()));
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
 
                 }else{

@@ -1,6 +1,7 @@
 package com.example.model;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "gamedata")
@@ -12,15 +13,20 @@ public class GameData {
     @JoinColumn(name = "userID")
     private User user;
 
-    @OneToOne
-    @JoinColumn(name = "scoreInfoID")
-    private ScoreInfo scoreInfo;
-
     private boolean isGameCleared;
     private String occupation;
+    private int wins;
+    private int loses;
 
     // Getters and Setters
 
+
+    public GameData() {
+        this.gameDataID = UUID.randomUUID().toString();
+        this.occupation = "Rookie";
+        this.wins = 0;
+        this.loses = 0;
+    }
 
     public String getGameDataID() {
         return gameDataID;
@@ -38,14 +44,6 @@ public class GameData {
         this.user = user;
     }
 
-    public ScoreInfo getScoreInfo() {
-        return scoreInfo;
-    }
-
-    public void setScoreInfo(ScoreInfo scoreInfo) {
-        this.scoreInfo = scoreInfo;
-    }
-
     public boolean isGameCleared() {
         return isGameCleared;
     }
@@ -60,5 +58,21 @@ public class GameData {
 
     public void setOccupation(String occupation) {
         this.occupation = occupation;
+    }
+
+    public int getWins() {
+        return wins;
+    }
+
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
+
+    public int getLoses() {
+        return loses;
+    }
+
+    public void setLoses(int loses) {
+        this.loses = loses;
     }
 }

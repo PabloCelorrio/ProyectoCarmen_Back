@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,7 @@ public class User {
 
     @OneToOne(cascade = CascadeType.ALL) // esto guarda el profile automáticamente
     @JoinColumn(name = "profileID", referencedColumnName = "profileID")
+    @JsonManagedReference
     private Profile profile;
 
     public User(String userName, String password, String email, Profile profile){
@@ -67,3 +69,4 @@ public class User {
 
     public void setProfile(Profile profile) { this.profile = profile; }
 }
+

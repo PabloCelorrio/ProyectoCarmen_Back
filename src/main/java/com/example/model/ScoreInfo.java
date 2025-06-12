@@ -1,6 +1,7 @@
 package com.example.model;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 @Table(name = "scoreinfo")
@@ -11,12 +12,21 @@ public class ScoreInfo {
     private boolean gameWon;
     private int score;
 
+    @OneToOne
+    @JoinColumn(name = "gameDataID", referencedColumnName = "gameDataID")
+    private GameData gameData;
+
     // Getters and Setters
 
     public ScoreInfo() {
-        this.score = 0;
-        this.gameWon = false;
-        this.playerRank = "Rookie";
+    }
+
+    public ScoreInfo(String playerRank, boolean gameWon, int score, GameData gameData) {
+        this.scoreInfoID = UUID.randomUUID().toString();
+        this.playerRank = playerRank;
+        this.gameWon = gameWon;
+        this.score = score;
+        this.gameData = gameData;
     }
 
     public String getScoreInfoID() {
@@ -49,5 +59,13 @@ public class ScoreInfo {
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    public GameData getGameData() {
+        return gameData;
+    }
+
+    public void setGameDataId(GameData gameDataId) {
+        this.gameData = gameDataId;
     }
 }

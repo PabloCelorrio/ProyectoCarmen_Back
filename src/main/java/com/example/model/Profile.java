@@ -1,5 +1,7 @@
 package com.example.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import javax.persistence.*;
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ public class Profile {
     private byte[] profileImg;
 
     @OneToOne(mappedBy = "profile")
+    @JsonBackReference
     private User user;
 
     public Profile() {

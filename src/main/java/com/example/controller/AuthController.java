@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.example.model.JwtUser;
 import com.example.model.User;
 import com.example.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,7 +38,15 @@ public class AuthController {
     //TODO los metodos solo pueden ejecutarse si se pasa un token
     //TODO la cookie no se regenera al tener una sesión caducada o inexistente
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(
+            origins = {
+                    "https://carmen-sandiego.loca.lt",
+                    "http://localhost:3000"
+            },
+            allowCredentials = "true",
+            allowedHeaders = "*",
+            methods = {RequestMethod.POST}
+    )
     @ApiOperation(value = "Login request")
     @PostMapping(path="/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity login(HttpSession session, @RequestBody User userRequestData) {
@@ -55,9 +64,11 @@ public class AuthController {
 
                     Algorithm algoritmo = Algorithm.HMAC256("CarmenSandiego");
 
+                    JwtUser jwtUser = new JwtUser(userRequestData.getEmail(), userRequestData.getPassword());
+
                     Date now = new Date();
                     Date expirationDate = new Date(now.getTime() + EXPIRATION_TIME);
-                    String userJson = new ObjectMapper().writeValueAsString(userRequestData);
+                    String userJson = new ObjectMapper().writeValueAsString(jwtUser);
 
                     String token = JWT.create()
                             .withIssuedAt(now)
@@ -85,8 +96,17 @@ public class AuthController {
         }
     }
 
+    @CrossOrigin(
+            origins = {
+                    "https://carmen-sandiego.loca.lt",
+                    "http://localhost:3000"
+            },
+            allowCredentials = "true",
+            allowedHeaders = "*",
+            methods = {RequestMethod.GET}
+    )
+
     @ResponseBody
-    @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
     @ApiOperation(value = "Check session", notes = "Checks if session cookie is valid")
     @GetMapping("/check-session")
     public ResponseEntity<String> checkSession(HttpServletRequest request) {
